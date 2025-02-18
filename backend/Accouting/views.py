@@ -59,7 +59,7 @@ class UserSettingsView(APIView):
 def export_financial_data(request, format_type):
     user = request.user
     transactions = Transaction.objects.filter(user=user)
-    months = transactions.values('date').annotate(amount=Sum('amount'))
+    months = transactions.values('date__month', 'date__year').annotate(amount=Sum('amount'))
 
     # Prepare financial summary
     total_spending = transactions.aggregate(Sum('amount'))['amount__sum'] or 0
@@ -87,10 +87,10 @@ def export_financial_data(request, format_type):
         ],
         "Transactions by Month": [
             {
-                "Month": t.date.strftime("%Y-%m-%d"),
-                "Price": float(t.amount)
+                "Month": f"{month['date__year']}-{month['date__month']:02d}",
+                "Price": float(month['amount'])
             }
-            for t in months
+            for month in months
         ],
     }
 
@@ -123,24 +123,41 @@ def export_financial_data(request, format_type):
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename=financial_data_{user.username}.pdf'
         p = canvas.Canvas(response, pagesize=letter)
+        
+        # Title and Summary
         p.drawString(100, 750, f"Financial Report for {user.username}")
         p.drawString(100, 730, f"Total Spending: ${total_spending}")
         p.drawString(100, 710, f"Average Spending: ${average_spending}")
         p.drawString(100, 690, f"Total transitions: {total_transitions}")
+        
+        # Categories Section
         p.drawString(100, 650, "Spending by Category:")
-        y = 670
+        y = 630
         for cat in categories:
             p.drawString(120, y, f"- {cat['category']}: ${float(cat['total_amount'])}")
             y -= 20
+        
+        # Transactions Section
         p.drawString(100, y - 20, "Transactions:")
         y -= 40
         for t in transactions:
             p.drawString(120, y, f"{t.date.strftime('%Y-%m-%d')} - {t.category} - {t.description} - ${float(t.amount)}")
             y -= 20
+            if y < 50:  # Add a new page if we're running out of space
+                p.showPage()
+                y = 750
         
-        for m in months:
-            p.drawString(120, y, f"{m.date.strftime('%Y-%m-%d')} - ${float(m.amount)}")
+        # Monthly Summary Section
+        p.drawString(100, y - 20, "Monthly Summary:")
+        y -= 40
+        for month in months:
+            month_str = f"{month['date__year']}-{month['date__month']:02d}"
+            p.drawString(120, y, f"{month_str} - ${float(month['amount'])}")
             y -= 20
+            if y < 50:  # Add a new page if we're running out of space
+                p.showPage()
+                y = 750
+        
         p.save()
         return response
 
