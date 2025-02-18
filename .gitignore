@@ -1,6 +1,76 @@
-# Ignore Python bytecode and virtual environments
-__pycache__/
+# Backend - Python/Django
 *.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+db.sqlite3
+media/
+static/
+
+# Frontend - React/Node
+node_modules/
+/frontend/node_modules
+/frontend/.pnp
+/frontend/.pnp.js
+/frontend/coverage
+/frontend/build
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ignore Python bytecode and virtual environments
 *.pyo
 *.pyd
 venv/
@@ -12,9 +82,17 @@ backend/venv/
 backend/env/
 backend/.env
 backend/.env.local
-
+backend/db.sqlite3
+backend/db.sqlite3-journal
+backend/*/migrations/
+backend/*/migrations/*.py
+backend/*/migrations/*.pyc
+backend/*/migrations/*.pyo
+backend/*/migrations/*.pyd
+backend/*/migrations/*.pyw
+backend/*/migrations/*.pyz
+backend/*/migrations/*.pywz
 # Ignore Django secret key files or local settings
-.env
 *.log
 
 # Ignore database files
@@ -24,36 +102,34 @@ backend/db.sqlite3
 backend/db.sqlite3-journal
 
 # Ignore Node.js dependencies
-node_modules/
 npm-debug.log
-frontend/node_modules/
-frontend/npm-debug.log
+frontend/node_modules/*.*
+frontend/node_modules/*/*.*
 frontend/package-lock.json
+frontend/.env
+frontend/.env.local
 
 */npm-debug.log
 */package-lock.json
 
 # Ignore build files
-build/
-dist/
 */build/    
 */dist/
 
 # Ignore React production build
 frontend/build/
+frontend/dist/
 */frontend/build/
+*/frontend/dist/
 
 # Ignore system files
 .DS_Store
 Thumbs.db
 
 # Ignore IDE/editor-specific files
-.vscode/
-.idea/
 *.iml
 
 # Ignore coverage reports
-coverage/
 *.cover
 .nyc_output/
 
@@ -62,9 +138,7 @@ docker-compose.override.yml
 docker-compose.yml
 
 # Ignore Ansible files
-ansible/
 */ansible/
 
 # Ignore Terraform files
-terraform/
 */terraform/
