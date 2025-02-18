@@ -12,18 +12,25 @@ export default function Dashboard() {
   const [financialData, setFinancialData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch the logged-in user's financial data from the backend
+  // Fetch the logged-in user's financial data and transactions from the backend
   useEffect(() => {
-    axios
-      .get("http://127.0.0.1:8000/api/financial-data/", {
+    Promise.all([
+      axios.get("http://127.0.0.1:8000/api/financial-data/", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      axios.get("http://127.0.0.1:8000/api/transactions/", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((response) => {
-        setFinancialData(response.data);
+    ])
+      .then(([financialResponse, transactionsResponse]) => {
+        setFinancialData({
+          ...financialResponse.data,
+          transactions: transactionsResponse.data
+        });
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching financial data:", error);
+        console.error("Error fetching data:", error);
         setLoading(false);
       });
   }, [token]);
@@ -95,8 +102,18 @@ export default function Dashboard() {
         {/* Spending Categories & Chart */}
         <section className="spending-section">
           <CategoryList data={spendingData} />
-          <monthList data={spendingData} />
-          <ChartCard data={spendingData} />
+          <div className="charts-container">
+            <div className="chart-wrapper">
+              <h3>Spending by Category</h3>
+              <ChartCard data={spendingData} />
+            </div>
+            <div className="chart-wrapper">
+              <h3>Spending by Date</h3>
+              <div className="card chart-card">
+                <BarChart data={financialData.transactions} />
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Download Section */}
@@ -230,6 +247,98 @@ function PieChart({ data }) {
     });
 
     // Cleanup the chart instance on unmount
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [data]);
+
+  return <canvas ref={chartRef} />;
+}
+
+// Bar Chart Component using Chart.js
+function BarChart({ data }) {
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current || !data || data.length === 0) return;
+
+    // Destroy any previous chart instance to avoid duplicates
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    if (!ctx) return;
+
+    // Sort transactions by date
+    const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    chartInstance.current = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: sortedData.map(item => new Date(item.date).toLocaleDateString()),
+        datasets: [
+          {
+            label: "Spending by Date",
+            data: sortedData.map(item => item.amount),
+            backgroundColor: sortedData.map(item => {
+              switch(item.category) {
+                case 'Food': return '#FF6384';
+                case 'Entertainment': return '#36A2EB';
+                case 'Bills': return '#FFCE56';
+                case 'Travel': return '#4BC0C0';
+                case 'Shopping': return '#9966FF';
+                default: return '#C9CBCF';
+              }
+            }),
+            borderColor: "#222",
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: "#fff",
+              callback: function(value) {
+                return '$' + value;
+              }
+            }
+          },
+          x: {
+            ticks: {
+              color: "#fff",
+              maxRotation: 45,
+              minRotation: 45
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: "top",
+            labels: {
+              color: "#fff",
+              font: { size: 14 },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const item = sortedData[context.dataIndex];
+                return [`Category: ${item.category}`, `Amount: $${context.parsed.y.toFixed(2)}`];
+              }
+            }
+          }
+        },
+      },
+    });
+
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
