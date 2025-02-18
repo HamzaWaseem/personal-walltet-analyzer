@@ -87,8 +87,8 @@ def export_financial_data(request, format_type):
         ],
         "Transactions by Month": [
             {
-                "Month": t.date.strftime("%Y-%m-%d"),
-                "Price": float(t.amount)
+                "Month": t['date'].strftime("%Y-%m-%d"),
+                "Price": float(t['amount'])
             }
             for t in months
         ],
@@ -123,24 +123,62 @@ def export_financial_data(request, format_type):
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename=financial_data_{user.username}.pdf'
         p = canvas.Canvas(response, pagesize=letter)
+        
+        # Title and Summary Section
+        p.setFont('Helvetica-Bold', 14)
         p.drawString(100, 750, f"Financial Report for {user.username}")
-        p.drawString(100, 730, f"Total Spending: ${total_spending}")
-        p.drawString(100, 710, f"Average Spending: ${average_spending}")
-        p.drawString(100, 690, f"Total transitions: {total_transitions}")
-        p.drawString(100, 650, "Spending by Category:")
-        y = 670
+        p.setFont('Helvetica', 12)
+        p.drawString(100, 720, f"Total Spending: ${total_spending}")
+        p.drawString(100, 700, f"Average Spending: ${average_spending}")
+        p.drawString(100, 680, f"Total transactions: {total_transitions}")
+        
+        # Categories Section
+        p.setFont('Helvetica-Bold', 12)
+        p.drawString(100, 640, "Spending by Category:")
+        p.setFont('Helvetica', 11)
+        y = 620
         for cat in categories:
             p.drawString(120, y, f"- {cat['category']}: ${float(cat['total_amount'])}")
             y -= 20
-        p.drawString(100, y - 20, "Transactions:")
-        y -= 40
+        
+        # Transactions Section
+        p.setFont('Helvetica-Bold', 12)
+        y -= 20  # Extra spacing between sections
+        p.drawString(100, y, "Transaction History:")
+        p.setFont('Helvetica', 11)
+        y -= 25
         for t in transactions:
             p.drawString(120, y, f"{t.date.strftime('%Y-%m-%d')} - {t.category} - {t.description} - ${float(t.amount)}")
             y -= 20
+            # Add a new page if we're running out of space
+            if y < 50:
+                p.showPage()
+                p.setFont('Helvetica-Bold', 12)
+                p.drawString(100, 750, "Transaction History (continued):")
+                p.setFont('Helvetica', 11)
+                y = 720
         
+        # Monthly Summary Section
+        if y < 100:  # If less than 100 points of space left, start a new page
+            p.showPage()
+            y = 750
+        else:
+            y -= 40  # Add extra spacing if on the same page
+        
+        p.setFont('Helvetica-Bold', 12)
+        p.drawString(100, y, "Monthly Summary:")
+        p.setFont('Helvetica', 11)
+        y -= 25
         for m in months:
-            p.drawString(120, y, f"{m.date.strftime('%Y-%m-%d')} - ${float(m.amount)}")
+            p.drawString(120, y, f"{m['date'].strftime('%Y-%m-%d')}: ${float(m['amount'])}")
             y -= 20
+            if y < 50:
+                p.showPage()
+                p.setFont('Helvetica-Bold', 12)
+                p.drawString(100, 750, "Monthly Summary (continued):")
+                p.setFont('Helvetica', 11)
+                y = 720
+        
         p.save()
         return response
 
