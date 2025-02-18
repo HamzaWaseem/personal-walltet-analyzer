@@ -92,11 +92,23 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* Spending Categories & Chart */}
-        <section className="spending-section">
+        {/* Charts Section - Updated structure */}
+        <section className="charts-section">
+          <div className="chart-wrapper">
+            <div className="chart-box">
+              <h3>Spending Distribution</h3>
+              <BarChart data={spendingData} />
+            </div>
+            <div className="chart-box">
+              <h3>Category Breakdown</h3>
+              <PieChart data={spendingData} />
+            </div>
+          </div>
+        </section>
+
+        {/* Categories Section */}
+        <section className="categories-section">
           <CategoryList data={spendingData} />
-          <monthList data={spendingData} />
-          <ChartCard data={spendingData} />
         </section>
 
         {/* Download Section */}
@@ -172,11 +184,7 @@ function MonthList({ data }) {
 
 // Chart Card Component wrapping the Pie Chart
 function ChartCard({ data }) {
-  return (
-    <div className="card chart-card">
-      <PieChart data={data} />
-    </div>
-  );
+  return null; // We can remove this component if it's not used elsewhere
 }
 
 // Pie Chart Component using Chart.js
@@ -217,19 +225,114 @@ function PieChart({ data }) {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: true,
         plugins: {
           legend: {
-            position: "top",
+            position: "bottom",
             labels: {
               color: "#fff",
-              font: { size: 14 },
+              font: { size: 12 },
+              padding: 10
             },
           },
         },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10
+          }
+        }
       },
     });
 
     // Cleanup the chart instance on unmount
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [data]);
+
+  return <canvas ref={chartRef} />;
+}
+
+// Bar Chart Component using Chart.js
+function BarChart({ data }) {
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    if (!ctx) return;
+
+    chartInstance.current = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: data.map(item => item.category),
+        datasets: [{
+          label: 'Spending by Category',
+          data: data.map(item => item.amount),
+          backgroundColor: [
+            "#FF6384",
+            "#36A2EB",
+            "#FFCE56",
+            "#4BC0C0",
+            "#9966FF",
+            "#FF9F40",
+          ],
+          borderColor: "#222",
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#fff',
+              font: { size: 12 }
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          },
+          x: {
+            ticks: {
+              color: '#fff',
+              font: { size: 12 }
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: '#fff',
+              font: { size: 12 },
+              padding: 10
+            }
+          }
+        },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10
+          }
+        }
+      }
+    });
+
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
