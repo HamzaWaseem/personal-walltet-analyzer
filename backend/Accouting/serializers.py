@@ -8,10 +8,11 @@ from .models import Profile
 class UserSettingsSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, required=False)
+    monthly_income = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'profile_picture')
+        fields = ('username', 'password', 'profile_picture', 'monthly_income')
 
     def get_profile_picture(self, obj):
         try:
@@ -26,6 +27,14 @@ class UserSettingsSerializer(serializers.ModelSerializer):
         except Exception:
             return None
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        try:
+            data['monthly_income'] = str(instance.profile.monthly_income) if instance.profile.monthly_income else None
+        except Profile.DoesNotExist:
+            data['monthly_income'] = None
+        return data
+
     def update(self, instance, validated_data):
         instance.username = validated_data.get('username', instance.username)
         password = validated_data.get('password', None)
@@ -33,13 +42,20 @@ class UserSettingsSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
 
-        # Use initial_data to get the file directly from FormData,
-        # since validated_data might not include the file under 'profile'
-        profile_picture = self.initial_data.get('profile_picture')
+        # Handle profile updates
         profile, created = Profile.objects.get_or_create(user=instance)
+        
+        # Update profile picture if provided
+        profile_picture = self.initial_data.get('profile_picture')
         if profile_picture:
             profile.profile_picture = profile_picture
-            profile.save()
+
+        # Update monthly income if provided
+        monthly_income = validated_data.get('monthly_income')
+        if monthly_income is not None:
+            profile.monthly_income = monthly_income
+
+        profile.save()
         return instance
 
 

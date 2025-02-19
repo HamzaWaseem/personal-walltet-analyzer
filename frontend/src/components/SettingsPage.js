@@ -8,6 +8,7 @@ const SettingsPage = () => {
   const [password, setPassword] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [monthlyIncome, setMonthlyIncome] = useState('');
   const [message, setMessage] = useState('');
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ const SettingsPage = () => {
         setUsername(response.data.username);
         if (response.data.profile_picture) {
           setPreviewUrl(response.data.profile_picture);
+        }
+        if (response.data.monthly_income) {
+          setMonthlyIncome(response.data.monthly_income);
         }
       })
       .catch((error) => {
@@ -56,6 +60,9 @@ const SettingsPage = () => {
     }
     if (profilePicture) {
       formData.append('profile_picture', profilePicture);
+    }
+    if (monthlyIncome) {
+      formData.append('monthly_income', monthlyIncome);
     }
     try {
       const response = await axios.put(
@@ -114,6 +121,17 @@ const SettingsPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Leave blank to keep current"
+            />
+          </div>
+          <div className="form_group">
+            <label>Monthly Income</label>
+            <input
+              type="number"
+              step="0.01"
+              className="form_input"
+              value={monthlyIncome}
+              onChange={(e) => setMonthlyIncome(e.target.value)}
+              placeholder="Enter your monthly income"
             />
           </div>
           <div className="form_group">

@@ -79,6 +79,10 @@ export default function Dashboard() {
         {/* Metrics Section */}
         <section className="metrics">
           <Card
+            title="Monthly Income"
+            value={`$${financialData.monthly_income || 0}`}
+          />
+          <Card
             title="Total Spending"
             value={`$${financialData.total_spending}`}
           />

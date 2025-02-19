@@ -179,10 +179,18 @@ class FinancialDataView(APIView):
 
         categories = user_transactions.values('category').annotate(total_amount=Sum('amount'))
 
+        # Get monthly income from user's profile
+        monthly_income = None
+        try:
+            monthly_income = float(request.user.profile.monthly_income) if request.user.profile.monthly_income else None
+        except:
+            pass
+
         data = {
             'total_spending': total_spending,
             'average_spending': average_spending,
             'total_transitions': total_transitions,
+            'monthly_income': float(request.user.profile.monthly_income) if request.user.profile.monthly_income else None,
             'spending_by_month': [
                 {'month': cat['date__month'], 'total_amount': cat['total_amount']} for cat in month
             ],

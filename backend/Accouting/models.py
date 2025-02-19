@@ -13,6 +13,13 @@ class Profile(models.Model):
         blank=True,
         help_text="Upload your profile picture. If empty, a default image is used."
     )
+    monthly_income = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="User's monthly income"
+    )
 
     def __str__(self):
         return f"{self.user.username} Profile"
