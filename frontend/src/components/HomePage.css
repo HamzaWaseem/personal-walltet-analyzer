@@ -1,0 +1,54 @@
+.spending-section {
+  margin: 2rem 0;
+}
+
+.charts-container {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.chart-wrapper {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 300px;
+}
+
+.bar-chart,
+.pie-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.category-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.spending-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.category-name {
+  font-weight: 500;
+  color: #fff;
+}
+
+.category-amount {
+  font-weight: 600;
+  color: #4BC0C0;
+}

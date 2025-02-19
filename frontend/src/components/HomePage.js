@@ -92,11 +92,21 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* Spending Categories & Chart */}
-        <section className="spending-section">
+        {/* Charts Section */}
+        <section className="charts-section">
+          <div className="charts-container">
+            <div className="chart-wrapper bar-chart">
+              <BarChart data={spendingData} />
+            </div>
+            <div className="chart-wrapper pie-chart">
+              <ChartCard data={spendingData} />
+            </div>
+          </div>
+        </section>
+
+        {/* Spending Categories */}
+        <section className="category-section">
           <CategoryList data={spendingData} />
-          <monthList data={spendingData} />
-          <ChartCard data={spendingData} />
         </section>
 
         {/* Download Section */}
@@ -230,6 +240,86 @@ function PieChart({ data }) {
     });
 
     // Cleanup the chart instance on unmount
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [data]);
+
+  return <canvas ref={chartRef} />;
+}
+
+// Bar Chart Component using Chart.js
+function BarChart({ data }) {
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext("2d");
+    if (!ctx) return;
+
+    chartInstance.current = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: data.map((item) => item.category),
+        datasets: [
+          {
+            label: "Spending by Category",
+            data: data.map((item) => item.amount),
+            backgroundColor: [
+              "#FF6384",
+              "#36A2EB",
+              "#FFCE56",
+              "#4BC0C0",
+              "#9966FF",
+              "#FF9F40",
+            ],
+            borderColor: "#222",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: "#fff",
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.1)",
+            },
+          },
+          x: {
+            ticks: {
+              color: "#fff",
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.1)",
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: "top",
+            labels: {
+              color: "#fff",
+              font: { size: 14 },
+            },
+          },
+        },
+      },
+    });
+
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
