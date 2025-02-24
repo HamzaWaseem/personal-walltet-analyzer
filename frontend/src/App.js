@@ -10,6 +10,7 @@ import SettingsPage from './components/SettingsPage';  // New Settings page comp
 import ProtectedRoute from './components/ProtectedRoute'; // Your authentication wrapper
 import Layout from './components/Layout'; // Import the layout
 import "./styles.css";  // Import your CSS file
+import TravelExpenses from './components/TravelExpenses';
 
 const App = () => {
   return (
@@ -67,6 +68,16 @@ const App = () => {
             <ProtectedRoute>
               <Layout>
                 <SettingsPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/travel-expenses" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <TravelExpenses />
               </Layout>
             </ProtectedRoute>
           }

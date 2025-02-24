@@ -25,15 +25,27 @@ class Transaction(models.Model):
         ('Travel', 'Travel'),
         ('Shopping', 'Shopping'),
     ]
+
+    EXPENSE_TYPE_CHOICES = [
+        ('regular', 'Regular Expense'),
+        ('travel', 'Travel Expense')
+    ]
+    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
         db_index=True
-    )  # Link to the user
+    )
     description = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     date = models.DateTimeField(auto_now_add=True)
+    expense_type = models.CharField(
+        max_length=20, 
+        choices=EXPENSE_TYPE_CHOICES,
+        default='regular',
+        help_text="Whether this is a regular expense or travel expense"
+    )
 
     def clean(self):
         # Ensure the amount is positive
