@@ -47,7 +47,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ['id', 'description', 'amount', 'category', 'user', 'date']
+        fields = ['id', 'description', 'amount', 'category', 'user', 'date', 'expense_type']
 
     def validate(self, data):
         # Perform model-level validation (via the clean() method)

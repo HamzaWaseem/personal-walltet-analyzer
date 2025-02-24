@@ -57,6 +57,7 @@ export default function Sidebar() {
         <SidebarButton Icon={Home} text=" Home" to="/home" />
         <SidebarButton Icon={Plus} text=" Add Data" to="/add-transaction" />
         <SidebarButton Icon={Grid} text=" View All" to="/transactions" />
+        <SidebarButton Icon={Plus} text=" Travel Expenses" to="/travel-expenses" />
         <SidebarButton Icon={Settings} text=" Settings" to="/settings" />
       </nav>
       <div className="user">
