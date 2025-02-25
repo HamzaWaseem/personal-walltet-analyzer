@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile
+from .models import Budget
 
 class UserSettingsSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
@@ -68,3 +69,9 @@ class TransactionSerializer(serializers.ModelSerializer):
         # Ensure the user can't be updated; keep the existing user
         validated_data['user'] = instance.user  # Ensure user remains the same
         return super().update(instance, validated_data)
+
+class BudgetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget
+        fields = ['id', 'category', 'limit_amount']
+        read_only_fields = ['id']

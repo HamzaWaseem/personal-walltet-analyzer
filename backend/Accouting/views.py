@@ -17,9 +17,11 @@ import pandas as pd
 import logging
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from .models import Transaction
-from .serializers import TransactionSerializer
+from .models import Transaction, Budget
+from .serializers import TransactionSerializer, BudgetSerializer
 from .utils import PieChartGenerator  # Import the utility class
+from django.utils import timezone
+from datetime import datetime
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -258,3 +260,67 @@ class TransactionView(APIView):
             serializer.save()
             return Response({"message": "Transaction added successfully!", "transaction": serializer.data}, status=201)
         return Response(serializer.errors, status=400)
+
+class BudgetView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        budgets = Budget.objects.filter(user=request.user)
+        
+        # Get current month's spending for each category
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+        
+        spending_data = Transaction.objects.filter(
+            user=request.user,
+            date__month=current_month,
+            date__year=current_year
+        ).values('category').annotate(
+            total_spent=Sum('amount')
+        )
+        
+        # Create a spending dictionary for easy lookup
+        spending_dict = {item['category']: item['total_spent'] for item in spending_data}
+        
+        # Combine budget and spending data
+        budget_data = []
+        for budget in budgets:
+            spent = spending_dict.get(budget.category, 0)
+            remaining = float(budget.limit_amount) - float(spent)
+            budget_data.append({
+                'id': budget.id,
+                'category': budget.category,
+                'limit_amount': float(budget.limit_amount),
+                'spent': float(spent),
+                'remaining': remaining,
+                'percentage_used': (float(spent) / float(budget.limit_amount) * 100) if budget.limit_amount else 0
+            })
+        
+        return Response(budget_data)
+
+    def post(self, request):
+        serializer = BudgetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, budget_id):
+        try:
+            budget = Budget.objects.get(id=budget_id, user=request.user)
+        except Budget.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+            
+        serializer = BudgetSerializer(budget, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, budget_id):
+        try:
+            budget = Budget.objects.get(id=budget_id, user=request.user)
+            budget.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Budget.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)

@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute'; // Your authentication
 import Layout from './components/Layout'; // Import the layout
 import "./styles.css";  // Import your CSS file
 import TravelExpenses from './components/TravelExpenses';
+import BudgetPage from './components/BudgetPage';
 
 const App = () => {
   return (
@@ -78,6 +79,16 @@ const App = () => {
             <ProtectedRoute>
               <Layout>
                 <TravelExpenses />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/budgets" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <BudgetPage />
               </Layout>
             </ProtectedRoute>
           }

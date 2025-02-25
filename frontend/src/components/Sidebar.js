@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Home, Plus, Grid, Settings, LogOut, User, Plane } from "lucide-react";
+import { Home, Plus, Grid, Settings, LogOut, User, Plane, Wallet } from "lucide-react";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -59,6 +59,7 @@ export default function Sidebar() {
         <SidebarButton Icon={Grid} text=" View All" to="/transactions" />
         <SidebarButton Icon={Plane} text=" Travel Expenses" to="/travel-expenses" />
         <SidebarButton Icon={Settings} text=" Settings" to="/settings" />
+        <SidebarButton Icon={Wallet} text=" Budgets" to="/budgets" />
       </nav>
       <div className="user">
         <div className="user-info">

@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import RegisterView, TransactionView, FinancialDataView, category_spending_pie_chart, export_financial_data, UserSettingsView
+from .views import RegisterView, TransactionView, FinancialDataView, category_spending_pie_chart, export_financial_data, UserSettingsView, BudgetView
 from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
@@ -21,5 +21,6 @@ urlpatterns = [
     
     path('api/export/<str:format_type>/', export_financial_data, name='export_financial_data'),
     path('api/settings/', UserSettingsView.as_view(), name='user_settings'),
-
+    path('api/budgets/', BudgetView.as_view(), name='budgets'),
+    path('api/budgets/<int:budget_id>/', BudgetView.as_view(), name='budget-detail'),
 ]
