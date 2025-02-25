@@ -1,8 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
-# models.py
-from django.db import models
 from django.contrib.auth.models import User
 
 class Profile(models.Model):
@@ -57,3 +55,31 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['-date']  # Newest transactions appear first
+
+class Budget(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_index=True
+    )
+    category = models.CharField(
+        max_length=50,
+        choices=Transaction.CATEGORY_CHOICES
+    )
+    limit_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Monthly budget limit for this category"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        if self.limit_amount <= 0:
+            raise ValidationError('Budget limit must be greater than zero.')
+
+    def __str__(self):
+        return f'{self.user.username} - {self.category} Budget: ${self.limit_amount}'
+
+    class Meta:
+        unique_together = ['user', 'category']  # One budget limit per category per user

@@ -1,9 +1,14 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from .views import RegisterView, TransactionView, FinancialDataView, category_spending_pie_chart, export_financial_data, UserSettingsView
 from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'api/budgets', views.BudgetViewSet, basename='budget')
 
 urlpatterns = [
+    path('', include(router.urls)),
     # User registration endpoint
     path('api/register/', RegisterView.as_view(), name='register'),
     

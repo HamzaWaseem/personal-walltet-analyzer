@@ -17,8 +17,9 @@ import pandas as pd
 import logging
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from .models import Transaction
-from .serializers import TransactionSerializer
+from datetime import datetime
+from .models import Transaction, Budget
+from .serializers import TransactionSerializer, BudgetSerializer
 from .utils import PieChartGenerator  # Import the utility class
 
 # Set up logger
@@ -255,6 +256,62 @@ class TransactionView(APIView):
         serializer = TransactionSerializer(data=transaction_data, context={'request': request})
 
         if serializer.is_valid():
+            # Check if there's a budget limit for this category
+            category = transaction_data.get('category')
+            amount = float(transaction_data.get('amount', 0))
+            current_month = datetime.now().month
+            current_year = datetime.now().year
+
+            try:
+                budget = Budget.objects.get(user=request.user, category=category)
+                # Calculate total spending for this category in the current month
+                monthly_spending = Transaction.objects.filter(
+                    user=request.user,
+                    category=category,
+                    date__month=current_month,
+                    date__year=current_year
+                ).aggregate(total=Sum('amount'))['total'] or 0
+
+                # Add the new transaction amount
+                total_spending = float(monthly_spending) + amount
+
+                # Check if this would exceed the budget
+                if total_spending > float(budget.limit_amount):
+                    # Create a serializable response without User objects
+                    transaction_data = {
+                        key: value for key, value in serializer.validated_data.items()
+                        if key != 'user'
+                    }
+                    remaining_budget = float(budget.limit_amount) - float(monthly_spending)
+                    exceeding_amount = amount - remaining_budget
+                    return Response({
+                        "error": f"Cannot add this transaction. Adding ${amount} would exceed your monthly budget limit of ${budget.limit_amount} for {category}.",
+                        "details": {
+                            "current_spending": float(monthly_spending),
+                            "budget_limit": float(budget.limit_amount),
+                            "remaining_budget": remaining_budget,
+                            "exceeding_amount": exceeding_amount
+                        },
+                        "transaction": transaction_data
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            except Budget.DoesNotExist:
+                # No budget limit set for this category
+                pass
+
             serializer.save()
             return Response({"message": "Transaction added successfully!", "transaction": serializer.data}, status=201)
         return Response(serializer.errors, status=400)
+
+class BudgetViewSet(viewsets.ModelViewSet):
+    serializer_class = BudgetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Budget.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)

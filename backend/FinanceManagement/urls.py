@@ -5,10 +5,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
 
-from Accouting.views import TransactionViewSet
+from Accouting.views import TransactionViewSet, BudgetViewSet
 
 router = DefaultRouter()
 router.register(r'transactions', TransactionViewSet, basename='transaction')
+router.register(r'budgets', BudgetViewSet, basename='budget')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

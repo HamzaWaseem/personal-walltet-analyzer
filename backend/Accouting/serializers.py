@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Transaction
+from .models import Transaction, Budget
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -67,4 +67,31 @@ class TransactionSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Ensure the user can't be updated; keep the existing user
         validated_data['user'] = instance.user  # Ensure user remains the same
+        return super().update(instance, validated_data)
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget
+        fields = ['id', 'category', 'limit_amount', 'user', 'created_at', 'updated_at']
+        read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        # Perform model-level validation
+        budget = Budget(**data)
+        try:
+            budget.clean()  # Calls the clean method of the model
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+        return data
+
+    def create(self, validated_data):
+        # Automatically set the user when creating a new budget
+        user = self.context['request'].user
+        validated_data['user'] = user
+        return Budget.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        # Ensure the user can't be updated
+        validated_data['user'] = instance.user
         return super().update(instance, validated_data)

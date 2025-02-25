@@ -6,10 +6,11 @@ import HomePage from './components/HomePage';
 import AddTransactionForm from './components/AddTransactionForm';
 import TransactionList from './components/TransactionList';
 import FinancialAnalytics from './components/FinancialAnalytics';
-import SettingsPage from './components/SettingsPage';  // New Settings page component
-import ProtectedRoute from './components/ProtectedRoute'; // Your authentication wrapper
-import Layout from './components/Layout'; // Import the layout
-import "./styles.css";  // Import your CSS file
+import SettingsPage from './components/SettingsPage';
+import BudgetPage from './components/BudgetPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import "./styles.css";
 import TravelExpenses from './components/TravelExpenses';
 
 const App = () => {
@@ -78,6 +79,16 @@ const App = () => {
             <ProtectedRoute>
               <Layout>
                 <TravelExpenses />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/budgets" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <BudgetPage />
               </Layout>
             </ProtectedRoute>
           }
